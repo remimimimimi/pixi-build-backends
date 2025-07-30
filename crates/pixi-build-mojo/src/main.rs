@@ -182,6 +182,7 @@ mod tests {
                     ..Default::default()
                 },
                 PathBuf::from("."),
+                PathBuf::from("pixi.toml"),
                 Platform::Linux64,
                 None,
             )
@@ -227,6 +228,7 @@ mod tests {
                     ..Default::default()
                 },
                 PathBuf::from("."),
+                PathBuf::from("pixi.toml"),
                 Platform::Linux64,
                 None,
             )
@@ -264,6 +266,7 @@ mod tests {
                 &project_model,
                 &MojoBackendConfig::default(),
                 temp.path().to_path_buf(),
+                PathBuf::from("pixi.toml"),
                 Platform::Linux64,
                 None,
             )
@@ -307,6 +310,7 @@ mod tests {
                     ..Default::default()
                 },
                 temp.path().to_path_buf(),
+                PathBuf::from("pixi.toml"),
                 Platform::Linux64,
                 None,
             )
@@ -352,6 +356,7 @@ mod tests {
                 &project_model,
                 &MojoBackendConfig::default(),
                 temp.path().to_path_buf(),
+                PathBuf::from("pixi.toml"),
                 Platform::Linux64,
                 None,
             )
