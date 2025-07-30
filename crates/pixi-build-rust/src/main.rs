@@ -34,7 +34,8 @@ impl GenerateRecipe for RustGenerator {
         &self,
         model: &ProjectModelV1,
         config: &Self::Config,
-        manifest_root: PathBuf,
+        source_dir: PathBuf,
+        manifest_path: PathBuf,
         host_platform: Platform,
         _python_params: Option<PythonParams>,
     ) -> miette::Result<GeneratedRecipe> {
@@ -111,7 +112,7 @@ impl GenerateRecipe for RustGenerator {
         }
 
         let build_script = BuildScriptContext {
-            source_dir: manifest_root.display().to_string(),
+            source_dir: source_dir.display().to_string(),
             extra_args: config.extra_args.clone(),
             has_openssl,
             has_sccache,

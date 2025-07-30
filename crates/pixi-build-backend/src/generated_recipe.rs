@@ -37,6 +37,7 @@ pub trait GenerateRecipe {
         &self,
         model: &ProjectModelV1,
         config: &Self::Config,
+        source_dir: PathBuf,
         manifest_path: PathBuf,
         // The host_platform will be removed in the future.
         // Right now it is used to determine if certain dependencies are present
