@@ -1795,6 +1795,7 @@ dependencies = [
 [[package]]
 name = "fancy_display"
 version = "0.1.0"
+source = "git+https://github.com/remimimimimi/pixi?branch=feat%2Fbuild-backend-alternative-source-root#4ab464cbe1be70f3a24ad024e0edf4c112b81603"
 dependencies = [
  "console 0.15.11",
 ]
@@ -4062,6 +4063,7 @@ dependencies = [
 [[package]]
 name = "pixi_build_type_conversions"
 version = "0.1.0"
+source = "git+https://github.com/remimimimimi/pixi?branch=feat%2Fbuild-backend-alternative-source-root#4ab464cbe1be70f3a24ad024e0edf4c112b81603"
 dependencies = [
  "itertools 0.14.0",
  "ordermap",
@@ -4075,6 +4077,7 @@ dependencies = [
 [[package]]
 name = "pixi_build_types"
 version = "0.1.0"
+source = "git+https://github.com/remimimimimi/pixi?branch=feat%2Fbuild-backend-alternative-source-root#4ab464cbe1be70f3a24ad024e0edf4c112b81603"
 dependencies = [
  "ordermap",
  "rattler_conda_types",
@@ -4088,6 +4091,7 @@ dependencies = [
 [[package]]
 name = "pixi_config"
 version = "0.1.0"
+source = "git+https://github.com/remimimimimi/pixi?branch=feat%2Fbuild-backend-alternative-source-root#4ab464cbe1be70f3a24ad024e0edf4c112b81603"
 dependencies = [
  "clap",
  "console 0.15.11",
@@ -4113,6 +4117,7 @@ dependencies = [
 [[package]]
 name = "pixi_consts"
 version = "0.1.0"
+source = "git+https://github.com/remimimimimi/pixi?branch=feat%2Fbuild-backend-alternative-source-root#4ab464cbe1be70f3a24ad024e0edf4c112b81603"
 dependencies = [
  "console 0.15.11",
  "rattler_cache",
@@ -4123,6 +4128,7 @@ dependencies = [
 [[package]]
 name = "pixi_git"
 version = "0.0.1"
+source = "git+https://github.com/remimimimimi/pixi?branch=feat%2Fbuild-backend-alternative-source-root#4ab464cbe1be70f3a24ad024e0edf4c112b81603"
 dependencies = [
  "dashmap",
  "dunce",
@@ -4142,6 +4148,7 @@ dependencies = [
 [[package]]
 name = "pixi_manifest"
 version = "0.1.0"
+source = "git+https://github.com/remimimimimi/pixi?branch=feat%2Fbuild-backend-alternative-source-root#4ab464cbe1be70f3a24ad024e0edf4c112b81603"
 dependencies = [
  "chrono",
  "console 0.15.11",
@@ -4181,6 +4188,7 @@ dependencies = [
 [[package]]
 name = "pixi_pypi_spec"
 version = "0.1.0"
+source = "git+https://github.com/remimimimimi/pixi?branch=feat%2Fbuild-backend-alternative-source-root#4ab464cbe1be70f3a24ad024e0edf4c112b81603"
 dependencies = [
  "itertools 0.14.0",
  "pep440_rs",
@@ -4200,6 +4208,7 @@ dependencies = [
 [[package]]
 name = "pixi_spec"
 version = "0.1.0"
+source = "git+https://github.com/remimimimimi/pixi?branch=feat%2Fbuild-backend-alternative-source-root#4ab464cbe1be70f3a24ad024e0edf4c112b81603"
 dependencies = [
  "dirs",
  "file_url",
@@ -4222,6 +4231,7 @@ dependencies = [
 [[package]]
 name = "pixi_spec_containers"
 version = "0.1.0"
+source = "git+https://github.com/remimimimimi/pixi?branch=feat%2Fbuild-backend-alternative-source-root#4ab464cbe1be70f3a24ad024e0edf4c112b81603"
 dependencies = [
  "indexmap 2.10.0",
  "itertools 0.14.0",
@@ -4233,14 +4243,13 @@ dependencies = [
 [[package]]
 name = "pixi_toml"
 version = "0.1.0"
+source = "git+https://github.com/remimimimimi/pixi?branch=feat%2Fbuild-backend-alternative-source-root#4ab464cbe1be70f3a24ad024e0edf4c112b81603"
 dependencies = [
  "digest",
  "hex",
  "indexmap 2.10.0",
  "itertools 0.14.0",
  "miette",
- "serde",
- "serde-value",
  "strsim",
  "strum",
  "toml-span",
@@ -4249,6 +4258,7 @@ dependencies = [
 [[package]]
 name = "pixi_utils"
 version = "0.1.0"
+source = "git+https://github.com/remimimimimi/pixi?branch=feat%2Fbuild-backend-alternative-source-root#4ab464cbe1be70f3a24ad024e0edf4c112b81603"
 dependencies = [
  "async-fd-lock",
  "fs-err",
