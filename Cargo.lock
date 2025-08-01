@@ -4239,6 +4239,8 @@ dependencies = [
  "indexmap 2.10.0",
  "itertools 0.14.0",
  "miette",
+ "serde",
+ "serde-value",
  "strsim",
  "strum",
  "toml-span",
