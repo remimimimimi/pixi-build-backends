@@ -35,11 +35,12 @@ impl GenerateRecipe for RustGenerator {
         model: &ProjectModelV1,
         config: &Self::Config,
         source_dir: PathBuf,
-        manifest_path: PathBuf,
+        _manifest_path: PathBuf,
         host_platform: Platform,
         _python_params: Option<PythonParams>,
     ) -> miette::Result<GeneratedRecipe> {
-        let mut generated_recipe = GeneratedRecipe::from_model(model.clone());
+        let mut generated_recipe =
+            GeneratedRecipe::from_model_with_source(model.clone(), Some(source_dir.clone()));
 
         // we need to add compilers
         let compiler_function = compiler_requirement(&Language::Rust);

@@ -26,11 +26,12 @@ impl GenerateRecipe for CMakeGenerator {
         model: &pixi_build_types::ProjectModelV1,
         config: &Self::Config,
         source_dir: std::path::PathBuf,
-        manifest_path: std::path::PathBuf,
+        _manifest_path: std::path::PathBuf,
         host_platform: rattler_conda_types::Platform,
         _python_params: Option<PythonParams>,
     ) -> miette::Result<GeneratedRecipe> {
-        let mut generated_recipe = GeneratedRecipe::from_model(model.clone());
+        let mut generated_recipe =
+            GeneratedRecipe::from_model_with_source(model.clone(), Some(source_dir.clone()));
 
         // we need to add compilers
 

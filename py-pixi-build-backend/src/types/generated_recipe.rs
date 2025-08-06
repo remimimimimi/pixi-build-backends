@@ -31,6 +31,14 @@ impl PyGeneratedRecipe {
         PyGeneratedRecipe { inner: recipe }
     }
 
+    #[staticmethod]
+    pub fn from_model_with_source(model: PyProjectModelV1, source_dir: Option<String>) -> Self {
+        let source_path = source_dir.map(std::path::PathBuf::from);
+
+        let recipe = GeneratedRecipe::from_model_with_source(model.inner.clone(), source_path);
+        PyGeneratedRecipe { inner: recipe }
+    }
+
     #[getter]
     pub fn recipe(&self) -> PyIntermediateRecipe {
         self.inner.recipe.clone().into()

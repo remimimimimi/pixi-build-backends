@@ -57,7 +57,8 @@ impl GenerateRecipe for PythonGenerator {
     ) -> miette::Result<GeneratedRecipe> {
         let params = python_params.unwrap_or_default();
 
-        let mut generated_recipe = GeneratedRecipe::from_model(model.clone());
+        let mut generated_recipe =
+            GeneratedRecipe::from_model_with_source(model.clone(), Some(source_dir.clone()));
 
         let requirements = &mut generated_recipe.recipe.requirements;
 
