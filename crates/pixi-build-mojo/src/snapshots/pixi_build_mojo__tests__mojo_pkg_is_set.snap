@@ -21,10 +21,10 @@ build:
     secrets: []
 requirements:
   build:
-    - max
+    - mojo-compiler
   host: []
   run:
-    - boltons *
+    - boltons
   run_constraints: []
 tests: []
 about: ~
