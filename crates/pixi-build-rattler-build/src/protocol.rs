@@ -696,7 +696,7 @@ impl Protocol for RattlerBuildBackend {
                     ArchiveType::Conda,
                     CompressionLevel::default(),
                 ),
-                store_recipe: false,
+                store_recipe: self.config.store_recipe(),
                 force_colors: true,
                 sandbox_config: None,
                 debug: Debug::new(false),

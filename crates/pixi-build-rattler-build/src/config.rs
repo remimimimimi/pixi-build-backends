@@ -10,6 +10,10 @@ pub struct RattlerBuildBackendConfig {
     /// Extra input globs to include in addition to the default ones
     #[serde(default)]
     pub extra_input_globs: Vec<String>,
+    /// Whether to store the recipe.yaml file in the generated conda package
+    /// Defaults to false for backwards compatibility
+    #[serde(default)]
+    pub store_recipe: bool,
 }
 
 impl BackendConfig for RattlerBuildBackendConfig {
@@ -21,6 +25,7 @@ impl BackendConfig for RattlerBuildBackendConfig {
     /// Target-specific values override base values using the following rules:
     /// - debug_dir: Not allowed to have target specific value
     /// - extra_input_globs: Platform-specific completely replaces base
+    /// - store_recipe: Target-specific value overrides base if explicitly set
     fn merge_with_target_config(&self, target_config: &Self) -> miette::Result<Self> {
         if target_config.debug_dir.is_some() {
             miette::bail!("`debug_dir` cannot have a target specific value");
@@ -33,7 +38,15 @@ impl BackendConfig for RattlerBuildBackendConfig {
             } else {
                 target_config.extra_input_globs.clone()
             },
+            store_recipe: target_config.store_recipe,
         })
+    }
+}
+
+impl RattlerBuildBackendConfig {
+    /// Whether to store the recipe.yaml file in the generated conda package
+    pub fn store_recipe(&self) -> bool {
+        self.store_recipe
     }
 }
 
@@ -55,11 +68,13 @@ mod tests {
         let base_config = RattlerBuildBackendConfig {
             debug_dir: Some(PathBuf::from("/base/debug")),
             extra_input_globs: vec!["*.base".to_string()],
+            store_recipe: false,
         };
 
         let target_config = RattlerBuildBackendConfig {
             debug_dir: None,
             extra_input_globs: vec!["*.target".to_string()],
+            store_recipe: true,
         };
 
         let merged = base_config
@@ -71,6 +86,9 @@ mod tests {
 
         // extra_input_globs should be completely overridden
         assert_eq!(merged.extra_input_globs, vec!["*.target".to_string()]);
+
+        // store_recipe should use target value
+        assert!(merged.store_recipe);
     }
 
     #[test]
@@ -78,6 +96,7 @@ mod tests {
         let base_config = RattlerBuildBackendConfig {
             debug_dir: Some(PathBuf::from("/base/debug")),
             extra_input_globs: vec!["*.base".to_string()],
+            store_recipe: true,
         };
 
         let empty_target_config = RattlerBuildBackendConfig::default();
@@ -89,6 +108,9 @@ mod tests {
         // Should keep base values when target is empty
         assert_eq!(merged.debug_dir, Some(PathBuf::from("/base/debug")));
         assert_eq!(merged.extra_input_globs, vec!["*.base".to_string()]);
+
+        // store_recipe should use target value (false from default)
+        assert!(!merged.store_recipe);
     }
 
     #[test]
