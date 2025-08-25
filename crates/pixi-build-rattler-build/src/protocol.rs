@@ -860,23 +860,6 @@ impl ProtocolInstantiator for RattlerBuildBackendInstantiator {
             RattlerBuildBackendConfig::default()
         };
 
-        // Extract workspace dependencies from the project model
-        //
-        // We only allow source dependencies (workspace packages) in project model, not binary
-        // dependencies. This is intentional because:
-        //
-        // 1. The rattler-build recipe is the source of truth for binary dependencies. It already
-        //    specifies exact versions, build variants, and whether dependencies go in build/host/run.
-        //
-        // 2. Allowing binary dependencies in both places would create duplication and potential
-        //    conflicts (e.g., recipe says "python >=3.10" but project model says "python >=3.9").
-        //
-        // 3. Source dependencies are different - they represent workspace packages built from local
-        //    source. The recipe can reference them by name, but can't know their workspace paths.
-        //    The project model provides this mapping.
-        //
-        // This way, the recipe maintains full control over binary dependencies while the project
-        // model only provides the workspace structure information that the recipe cannot know.
         let mut workspace_dependencies = HashMap::new();
 
         if let Some(target) = params
