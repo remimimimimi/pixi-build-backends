@@ -46,8 +46,9 @@ Learn more about the `rattler-build`, and its recipe format in its [high level o
 
 ## Specifying dependencies
 
-We only allow source dependencies (workspace packages) in project model, not binary
-dependencies. This is intentional because:
+We only allow source dependencies (workspace packages) in project manifest.
+Binary dependencies are not allowed in the project manifest when using `pixi-build-rattler-build`. 
+This is intentional because:
 
 1. The rattler-build recipe is the source of truth for binary dependencies. It already
    specifies exact versions, build variants, and whether dependencies go in build/host/run.
@@ -62,9 +63,9 @@ dependencies. This is intentional because:
 This way, the recipe maintains full control over binary dependencies while the project
 model only provides the workspace structure information that the recipe cannot know.
 
-To specify workspace dependencies, use `build-dependencies` in your `pixi.toml`:
+To specify source dependencies, add them to `build-dependencies`, `host-dependencies` or `run-dependencies` in the package manifest:
 
-```toml
+```toml title="pixi.toml"
 [package.build-dependencies]
 a = { path = "../a" }
 ```
