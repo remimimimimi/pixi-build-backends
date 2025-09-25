@@ -1,0 +1,24 @@
+[workspace]
+authors = ["remimimimimi <remimimimimi@protonmail.com>"]
+channels = ["conda-forge"]
+name = "pixi-build-autotools"
+platforms = ["linux-64"]
+version = "0.1.1"
+preview = ["pixi-build"]
+
+[package]
+name = "pixi-build-autotools"
+version = "0.1.1"
+
+[package.build]
+backend = { name = "pixi-build-cmake", version = "0.3.*" }
+
+[package.build.config]
+extra-args = ["-DCMAKE_BUILD_TYPE=Release"]
+
+[package.host-dependencies]
+cmake = "3.20.*"
+c-pixi-build-backend = { path = "../.." }
+
+[package.run-dependencies]
+pixi-build-api-version = ">=2,<3"

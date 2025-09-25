@@ -1,0 +1,33 @@
+[workspace]
+authors = ["remimimimimi <remimimimimi@protonmail.com>"]
+channels = [
+  "https://prefix.dev/pixi-build-backends",
+  "https://prefix.dev/conda-forge",
+]
+platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
+license = "BSD-3-Clause"
+preview = ["pixi-build"]
+
+[package]
+name = "c-pixi-build-backend"
+version = "0.1.0"
+
+[package.build.backend]
+name = "pixi-build-rattler-build"
+version = "0.3.*"
+
+[dependencies]
+# Skipping self as it's a long build, and it's not yet reused in the tests
+#c-pixi-build-backend = { path = "." }
+
+
+[tasks]
+build = "maturin develop"
+build-release = "maturin develop --release"
+
+test = { cmd = "pytest --doctest-modules", depends-on = ["build"] }
+test-fast = "pytest --doctest-modules"
+
+fmt = "cargo fmt --all"
+
+lint = "cargo clippy --all"

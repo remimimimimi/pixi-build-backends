@@ -1,0 +1,50 @@
+package:
+  name: c-pixi-build-backend
+  version: 0.1.0
+
+source:
+  path: ..
+  use_gitignore: true
+
+build:
+  number: 0
+  script:
+    - cargo build --release -p c-pixi-build-backend # --features=headers
+    # - cargo run -p generate-headers --release --features=headers
+    - ls
+    - echo -----------------------------------------
+    - ls c-pixi-build-backend
+    - mkdir -p $PREFIX/{include,lib}
+    - cp ./c-pixi-build-backend/pixi-build-backend.h $PREFIX/include/pixi-build-backend.h
+    - echo hi
+    - echo -----------------------------------------
+    - ls target
+    - echo -----------------------------------------
+    - ls target/release
+    - cp target/x86_64-unknown-linux-gnu/release/libc_pixi_build_backend.a $PREFIX/lib/libpixi-build-backend.a
+    - echo hi
+
+requirements:
+  build:
+    - ${{ compiler('rust') }}
+
+tests:
+  - package_contents:
+      # strict: true
+      # lib:
+      #   - pixi-build-backend
+      include:
+        - pixi-build-backend.h
+
+about:
+  # homepage: https://github.com/xtensor-stack/xtensor
+  license: BSD-3-Clause
+  license_file: LICENSE
+  # summary: The C++ tensor algebra library
+  # description: Multi dimensional arrays with broadcasting and lazy computing
+  # documentation: https://xtensor.readthedocs.io
+  # repository: https://github.com/xtensor-stack/xtensor
+
+extra:
+  recipe-maintainers:
+    - remimimimimi
