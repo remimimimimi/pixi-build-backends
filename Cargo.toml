@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/*"]
+members = ["c-pixi-build-backend", "crates/*"]
 resolver = "2"
 
 [workspace.package]
