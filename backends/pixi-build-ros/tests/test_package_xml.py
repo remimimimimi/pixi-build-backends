@@ -303,7 +303,7 @@ def test_rosdep_to_conda_package_spec_doesnt_add_matchspec_for_special_rosdeps()
 
     packages = rosdep_to_conda_package_spec(dep, distro, host_platform, {})
 
-    assert packages == ["ros-jazzy-ament-cmake"]
+    assert packages == ["ros-jazzy-ament-cmake==1.2.3"]
 
 
 def test_rosdep_to_conda_package_spec_adds_matchspec_for_distro_packages():
@@ -334,7 +334,7 @@ def test_rosdep_to_conda_package_spec_adds_matchspec_for_unknown_dependencies():
 
     packages = rosdep_to_conda_package_spec(dep, distro, host_platform, {})
 
-    assert packages == ["customlib >1.0.0"]
+    assert packages == ["ros-jazzy-customlib >1.0.0"]
 
 
 def test_rosdep_to_conda_package_spec_exception():
