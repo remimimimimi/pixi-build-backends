@@ -34,6 +34,10 @@ outputs:
         - bin/pixi-build-cmake
         - bin/pixi-build-cmake.exe
 
+    requirements:
+      run:
+        - pixi-build-api-version >=2,<3
+
     tests:
       - script:
           - pixi-build-cmake --help
@@ -45,6 +49,10 @@ outputs:
       files:
         - bin/pixi-build-mojo
         - bin/pixi-build-mojo.exe
+
+    requirements:
+      run:
+        - pixi-build-api-version >=2,<3
 
     tests:
       - script:
@@ -58,6 +66,10 @@ outputs:
         - bin/pixi-build-python
         - bin/pixi-build-python.exe
 
+    requirements:
+      run:
+        - pixi-build-api-version >=2,<3
+
     tests:
       - script:
           - pixi-build-python --help
@@ -70,6 +82,10 @@ outputs:
         - bin/pixi-build-rattler-build
         - bin/pixi-build-rattler-build.exe
 
+    requirements:
+      run:
+        - pixi-build-api-version >=2,<3
+
     tests:
       - script:
           - pixi-build-rattler-build --help
@@ -81,6 +97,10 @@ outputs:
       files:
         - bin/pixi-build-rust
         - bin/pixi-build-rust.exe
+
+    requirements:
+      run:
+        - pixi-build-api-version >=2,<3
 
     tests:
       - script:
