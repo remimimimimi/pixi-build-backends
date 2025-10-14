@@ -1,12 +1,17 @@
-use std::path::{Path, PathBuf};
+use std::{
+    io::Read,
+    path::{Path, PathBuf},
+};
 
 use clap::{Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
-use miette::{Context, IntoDiagnostic};
+use fs_err::{create_dir_all, read_to_string};
+use miette::{Context, IntoDiagnostic, miette};
 use pixi_build_types::{
     BackendCapabilities, ChannelConfiguration, FrontendCapabilities, PlatformAndVirtualPackages,
     procedures::{
         conda_build_v0::CondaBuildParams,
+        conda_build_v1::{CondaBuildV1Params, CondaBuildV1Result},
         conda_metadata::{CondaMetadataParams, CondaMetadataResult},
         initialize::InitializeParams,
         negotiate_capabilities::NegotiateCapabilitiesParams,
@@ -56,6 +61,23 @@ pub enum Commands {
     CondaBuild {
         #[clap(env, long, env = "PIXI_PROJECT_MANIFEST", default_value = consts::WORKSPACE_MANIFEST)]
         manifest_path: PathBuf,
+    },
+    /// Build a conda package using the API v1 request format.
+    CondaBuildV1 {
+        #[clap(env, long, env = "PIXI_PROJECT_MANIFEST", default_value = consts::WORKSPACE_MANIFEST)]
+        manifest_path: PathBuf,
+
+        /// Path to a file containing the CondaBuildV1Params (YAML or JSON). Use '-' to read from stdin.
+        #[clap(long)]
+        params: PathBuf,
+
+        /// Override the work directory provided in the params file.
+        #[clap(long)]
+        work_directory: Option<PathBuf>,
+
+        /// Override the output directory provided in the params file.
+        #[clap(long)]
+        output_directory: Option<PathBuf>,
     },
     /// Get the capabilities of the backend.
     Capabilities,
@@ -128,7 +150,55 @@ pub(crate) async fn main_impl<T: ProtocolInstantiator, F: FnOnce(LoggingOutputHa
             );
             Ok(())
         }
-        Some(Commands::CondaBuild { manifest_path }) => build(factory, &manifest_path).await,
+        Some(Commands::CondaBuild { manifest_path }) => {
+            let backend_capabilities = capabilities::<T>().await?;
+            if backend_capabilities
+                .provides_conda_build
+                .unwrap_or_default()
+            {
+                build(factory, &manifest_path).await
+            } else if backend_capabilities
+                .provides_conda_build_v1
+                .unwrap_or_default()
+            {
+                Err(miette!(
+                    "Backend reports support for '{}' but not '{}'. Use 'conda-build-v1' instead.",
+                    pixi_build_types::procedures::conda_build_v1::METHOD_NAME,
+                    pixi_build_types::procedures::conda_build_v0::METHOD_NAME
+                ))
+            } else {
+                Err(miette!(
+                    "Backend does not report '{}' support.",
+                    pixi_build_types::procedures::conda_build_v0::METHOD_NAME
+                ))
+            }
+        }
+        Some(Commands::CondaBuildV1 {
+            manifest_path,
+            params,
+            work_directory,
+            output_directory,
+        }) => {
+            let backend_capabilities = capabilities::<T>().await?;
+            if !backend_capabilities
+                .provides_conda_build_v1
+                .unwrap_or_default()
+            {
+                return Err(miette!(
+                    "Backend does not report '{}' support.",
+                    pixi_build_types::procedures::conda_build_v1::METHOD_NAME
+                ));
+            }
+
+            build_v1(
+                factory,
+                &manifest_path,
+                &params,
+                work_directory,
+                output_directory,
+            )
+            .await
+        }
         Some(Commands::GetCondaMetadata {
             manifest_path,
             host_platform,
@@ -290,4 +360,97 @@ async fn build<T: ProtocolInstantiator>(factory: T, manifest_path: &Path) -> mie
     }
 
     Ok(())
+}
+
+/// Build a package using the API v1 request format.
+async fn build_v1<T: ProtocolInstantiator>(
+    factory: T,
+    manifest_path: &Path,
+    params_path: &Path,
+    work_directory: Option<PathBuf>,
+    output_directory: Option<PathBuf>,
+) -> miette::Result<()> {
+    let mut params = load_conda_build_v1_params(params_path)?;
+
+    if let Some(work_dir) = work_directory {
+        create_dir_all(&work_dir)
+            .into_diagnostic()
+            .with_context(|| format!("failed to create work directory '{}'", work_dir.display()))?;
+        params.work_directory = work_dir;
+    } else {
+        create_dir_all(&params.work_directory)
+            .into_diagnostic()
+            .with_context(|| {
+                format!(
+                    "failed to create work directory '{}'",
+                    params.work_directory.display()
+                )
+            })?;
+    }
+
+    if let Some(out_dir) = output_directory {
+        create_dir_all(&out_dir)
+            .into_diagnostic()
+            .with_context(|| {
+                format!("failed to create output directory '{}'", out_dir.display())
+            })?;
+        params.output_directory = Some(out_dir);
+    } else if let Some(out_dir) = params.output_directory.as_ref() {
+        create_dir_all(out_dir).into_diagnostic().with_context(|| {
+            format!("failed to create output directory '{}'", out_dir.display())
+        })?;
+    }
+
+    let protocol = initialize(factory, manifest_path).await?;
+    let result = protocol.conda_build_v1(params).await?;
+
+    print_conda_build_v1_result(&result);
+
+    println!(
+        "{}",
+        serde_yaml::to_string(&result)
+            .into_diagnostic()
+            .context("failed to serialize conda-build-v1 result")?
+    );
+
+    Ok(())
+}
+
+fn print_conda_build_v1_result(result: &CondaBuildV1Result) {
+    eprintln!("Successfully built '{}'", result.output_file.display());
+    eprintln!("Output metadata:");
+    eprintln!("  name: {}", result.name);
+    eprintln!("  version: {}", result.version);
+    eprintln!("  build: {}", result.build);
+    eprintln!("  subdir: {}", result.subdir);
+    eprintln!("Use the following globs to revalidate:");
+    for glob in &result.input_globs {
+        eprintln!("  - {glob}");
+    }
+}
+
+fn load_conda_build_v1_params(path: &Path) -> miette::Result<CondaBuildV1Params> {
+    let (source, raw) = read_params_source(path)?;
+    serde_yaml::from_str(&raw)
+        .into_diagnostic()
+        .with_context(|| format!("failed to parse CondaBuildV1Params from {source}"))
+}
+
+fn read_params_source(path: &Path) -> miette::Result<(String, String)> {
+    if path == Path::new("-") {
+        let mut buffer = String::new();
+        std::io::stdin()
+            .read_to_string(&mut buffer)
+            .into_diagnostic()
+            .context("failed to read CondaBuildV1Params from stdin")?;
+        Ok((String::from("stdin"), buffer))
+    } else {
+        let text = read_to_string(path).into_diagnostic().with_context(|| {
+            format!(
+                "failed to read CondaBuildV1Params from '{}'",
+                path.display()
+            )
+        })?;
+        Ok((path.display().to_string(), text))
+    }
 }
