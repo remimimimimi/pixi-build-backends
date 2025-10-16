@@ -20,28 +20,19 @@ def is_executable(path: Path) -> bool:
         return path.suffix.lower() in pathext
     return os.access(str(path), os.X_OK)
 
-def main() -> int:
-    prefix = os.environ.get("PREFIX")
-    if not prefix:
-        print("error: $PREFIX is not set", file=sys.stderr)
-        return 1
+def main() -> None:
+    prefix = os.environ.get["PREFIX"]
 
     src_root = Path("../../target-cache")
     if not src_root.exists():
-        # match `find` behavior: no matches -> silent, but here we inform and exit 0
-        return 0
+        return
 
     dest_dir = Path(prefix) / "bin"
     dest_dir.mkdir(parents=True, exist_ok=True)
 
-    copied_any = False
     for p in src_root.rglob("pixi-build*"):
         if is_executable(p):
             shutil.copy2(p, dest_dir / p.name)
-            copied_any = True
-
-    # Exit 0 even if nothing matched, mirroring `find -exec cp …` behavior
-    return 0 if copied_any or True else 1  # pragma: no cover
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
