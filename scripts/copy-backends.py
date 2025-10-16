@@ -21,7 +21,7 @@ def is_executable(path: Path) -> bool:
     return os.access(str(path), os.X_OK)
 
 def main() -> None:
-    prefix = os.environ.get["PREFIX"]
+    prefix = os.environ["PREFIX"]
 
     src_root = Path("../../target-cache")
     if not src_root.exists():
