@@ -81,10 +81,17 @@ depends-on = [
 args = ["recipe", { arg = "target_platform", default = "" }]
 
 [feature.build.tasks.build-testsuite-backends]
-cmd = "rattler-build build --experimental -r recipe/testsuite-backends --variant-config recipe/variants.yaml --output-dir {{ output_dir }} -vvv"
+cmd = "rattler-build build --experimental --recipe recipe/testsuite-backends --variant-config recipe/variants.yaml --output-dir {{ output_dir }}"
 args = [{ arg = "output_dir", default = "artifacts-channel" }]
-inputs = ["recipe/testsuite-backends/recipe.yaml"]
-outputs = ["{{output_dir}}"]
+inputs = [
+  "recipe/testsuite-backends/recipe.yaml",
+  "recipe/variants.yaml",
+  "crates/**/src/*.rs",
+  "crates/**/Cargo.toml",
+  "backends/pixi-build-ros/**/*.py",
+  "backends/pixi-build-ros/pyproject.toml",
+  "backends/pixi-build-ros/templates/*",
+]
 
 [feature.build.tasks.clean-backends-build-outputs]
 depends-on = [
@@ -94,25 +101,34 @@ depends-on = [
 ]
 args = [{ arg = "output_dir", default = "artifacts-channel" }]
 cmd = "python scripts/clean-outputs.py {{ output_dir }}"
-inputs = ["{{ output_dir }}"]
 
 [feature.build.tasks.index-testsuite-channel]
 depends-on = [
-  { task = "clean-backends-build-outputs", args = [
+  { task = "build-testsuite-backends", args = [
     "{{ channel_dir }}",
   ] },
 ]
 args = [{ arg = "channel_dir", default = "artifacts-channel" }]
-cmd = "rattler-index fs --write-shards false --write-zst false {{ channel_dir }}"
-inputs = ["{{ channel_dir }}"]
-outputs = ["{{ channel_dir }}/**/repodata.json"]
+cmd = "rattler-index fs --force --write-shards false --write-zst false {{ channel_dir }}"
+inputs = ["{{ channel_dir }}/**/*.conda"]
 
-# Do not forget remove previous channel if you're working locally!
-# Otherwise source dir will include previous channel which WILL cause
-# problems!
+[feature.build.tasks.create-channel]
+depends-on = [
+  { task = "build-testsuite-backends", args = [
+    "{{ channel_dir }}",
+  ] },
+  { task = "index-testsuite-channel", args = [
+    "{{ channel_dir }}",
+  ] },
+]
+args = [{ arg = "channel_dir", default = "artifacts-channel" }]
+
 [feature.build.tasks.create-testsuite-channel]
 depends-on = [
-  { task = "index-testsuite-channel", args = [
+  { task = "create-channel", args = [
+    "{{ channel_dir }}",
+  ] },
+  { task = "clean-backends-build-outputs", args = [
     "{{ channel_dir }}",
   ] },
 ]

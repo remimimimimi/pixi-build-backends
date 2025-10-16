@@ -26,7 +26,7 @@ def main() -> int:
         print("error: $PREFIX is not set", file=sys.stderr)
         return 1
 
-    src_root = Path("target")
+    src_root = Path("../../target-cache")
     if not src_root.exists():
         # match `find` behavior: no matches -> silent, but here we inform and exit 0
         return 0
