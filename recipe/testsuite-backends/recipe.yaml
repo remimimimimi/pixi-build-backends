@@ -16,7 +16,7 @@ cache:
       - ${{ compiler("rust") }}
       - ${{ stdlib("c") }}
       # - ${{ compiler("c") }}
-      - python
+      - python 3.13.*
     host:
       - liblzma
 
@@ -111,11 +111,11 @@ outputs:
 
     requirements:
       host:
-        - python >=3.9
+        - python 3.13.*
         - hatchling
         - pip
       run:
-        - python >=3.9
+        - python 3.13.*
         - rosdistro
         - catkin_pkg
         - pydantic
