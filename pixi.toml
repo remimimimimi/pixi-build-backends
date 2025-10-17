@@ -82,7 +82,7 @@ depends-on = [
 args = ["recipe", { arg = "target_platform", default = "" }]
 
 [feature.build.tasks.build-testsuite-backends]
-cmd = "rattler-build build --experimental --recipe recipe/testsuite-backends --variant-config recipe/variants.yaml --output-dir {{ output_dir }}"
+cmd = "rattler-build build --experimental --no-build-id --recipe recipe/testsuite-backends --variant-config recipe/variants.yaml --output-dir {{ output_dir }}"
 args = [{ arg = "output_dir", default = "artifacts-channel" }]
 inputs = [
   "recipe/testsuite-backends/recipe.yaml",
