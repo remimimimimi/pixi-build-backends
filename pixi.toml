@@ -103,9 +103,16 @@ depends-on = [
 args = [{ arg = "channel_dir", default = "artifacts-channel" }]
 cmd = "rattler-index fs --force --write-shards false --write-zst false {{ channel_dir }}"
 
+[feature.build.tasks.rm-build]
+cmd = "rm -rf {{ channel_dir }}/bld"
+args = [{ arg = "channel_dir", default = "artifacts-channel" }]
+
 [feature.build.tasks.create-channel]
 depends-on = [
   { task = "build-testsuite-backends", args = [
+    "{{ channel_dir }}",
+  ] },
+  { task = "rm-build", args = [
     "{{ channel_dir }}",
   ] },
   { task = "index-testsuite-channel", args = [

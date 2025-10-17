@@ -23,7 +23,7 @@ def is_executable(path: Path) -> bool:
 def main() -> None:
     prefix = os.environ["PREFIX"]
 
-    src_root = Path("../../target-cache")
+    src_root = Path("./target/channel-build-cache")
     if not src_root.exists():
         return
 

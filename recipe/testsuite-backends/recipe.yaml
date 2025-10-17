@@ -8,9 +8,8 @@ recipe:
   version: ${{ version }}
 
 cache:
-  source:
-    path: ../..
-
+  # source:
+  #   path: ../..
   requirements:
     build:
       - ${{ compiler("rust") }}
@@ -22,8 +21,9 @@ cache:
   build:
     script:
       - if: win
-        then: set "CARGO_TARGET_DIR=%SRC_DIR%\..\..\target-cache"
-        else: export CARGO_TARGET_DIR=${SRC_DIR}/../../target-cache
+        then: set "CARGO_TARGET_DIR=%RECIPE_DIR%\..\..\target/channel-build-cache"
+        else: export CARGO_TARGET_DIR=${RECIPE_DIR}/../../target/channel-build-cache
+      - cd $RECIPE_DIR/../.. # TODO: Take care about windows
       - cargo build --profile ci --locked --bins
       - python scripts/copy-backends.py
 
@@ -128,6 +128,7 @@ outputs:
         - pixi-build-api-version >=2,<3
     build:
       script:
+        - cd $RECIPE_DIR/../..
         - pip install backends/pixi-build-ros -vv --no-build-isolation
       noarch: python
       python:
@@ -166,10 +167,10 @@ outputs:
     build:
       script:
         - if: win
-          then: set "CARGO_TARGET_DIR=%SRC_DIR%\..\..\target-cache"
-          else: export CARGO_TARGET_DIR=${SRC_DIR}/../../target-cache
-        - cd py-pixi-build-backend
-        - pip install . -vv --no-build-isolation --config-settings=build-args=--profile=ci
+          then: set "CARGO_TARGET_DIR=%RECIPE_DIR%\..\..\target/channel-build-cache"
+          else: export CARGO_TARGET_DIR=${RECIPE_DIR}/../../target/channel-build-cache
+        - cd $RECIPE_DIR/../../py-pixi-build-backend
+        - pip install . -vv --no-build-isolation --config-settings=build-args=--profile=ci  --config-settings=build-args=--locked
       files:
         exclude:
           - python-scripts/*
