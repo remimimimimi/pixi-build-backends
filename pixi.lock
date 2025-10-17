@@ -29,6 +29,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/rattler-build-0.46.0-h60886be_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/rattler-index-0.25.2-h942d4a7_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/readline-8.2-h8c095d6_2.conda
+      - conda: https://prefix.dev/conda-forge/linux-64/sccache-0.11.0-h60886be_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/tk-8.6.13-noxft_hd72426e_102.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
@@ -49,6 +50,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-64/rattler-build-0.46.0-hd3e8693_0.conda
       - conda: https://prefix.dev/conda-forge/osx-64/rattler-index-0.25.2-h90e5d42_0.conda
       - conda: https://prefix.dev/conda-forge/osx-64/readline-8.2-h7cca4af_2.conda
+      - conda: https://prefix.dev/conda-forge/osx-64/sccache-0.11.0-h9113d71_0.conda
       - conda: https://prefix.dev/conda-forge/osx-64/tk-8.6.13-hf689a15_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
       - conda: https://prefix.dev/conda-forge/osx-64/zstd-1.5.7-h8210216_2.conda
@@ -70,6 +72,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/osx-arm64/rattler-build-0.46.0-hcdef695_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/rattler-index-0.25.2-h515db0c_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/readline-8.2-h1d1bf99_2.conda
+      - conda: https://prefix.dev/conda-forge/osx-arm64/sccache-0.11.0-h8d80559_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/tk-8.6.13-h892fb3f_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
       - conda: https://prefix.dev/conda-forge/osx-arm64/zstd-1.5.7-h6491c7d_2.conda
@@ -88,6 +91,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.14-8_cp314.conda
       - conda: https://prefix.dev/conda-forge/win-64/rattler-build-0.46.0-h18a1a76_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/rattler-index-0.25.2-h9fbdfe2_0.conda
+      - conda: https://prefix.dev/conda-forge/win-64/sccache-0.11.0-h18a1a76_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/tk-8.6.13-h2c6b04d_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2025b-h78e105d_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/ucrt-10.0.22621.0-h57928b3_1.conda
@@ -6126,6 +6130,55 @@ packages:
   license_family: MIT
   size: 37041309
   timestamp: 1751057508252
+- conda: https://prefix.dev/conda-forge/linux-64/sccache-0.11.0-h60886be_0.conda
+  sha256: c9e1daf3b17ec11a9bc36e02bac32f714488b8c1dc42d0f59e5a3fc5aeebc9ca
+  md5: ce5d5775ebeeb2f004e99cca279a53a1
+  depends:
+  - libgcc >=14
+  - __glibc >=2.17,<3.0.a0
+  - openssl >=3.5.4,<4.0a0
+  constrains:
+  - __glibc >=2.17
+  license: Apache-2.0
+  license_family: APACHE
+  size: 6177276
+  timestamp: 1760129545075
+- conda: https://prefix.dev/conda-forge/osx-64/sccache-0.11.0-h9113d71_0.conda
+  sha256: 4f1bea1b9cd4d994e0217833f6d33d3e68494846aaac5e5ee6dfe8caab84f54f
+  md5: 7c3d8ee04503600deb931cb95e2a08c6
+  depends:
+  - __osx >=10.13
+  constrains:
+  - __osx >=10.13
+  license: Apache-2.0
+  license_family: APACHE
+  size: 6074833
+  timestamp: 1760129594414
+- conda: https://prefix.dev/conda-forge/osx-arm64/sccache-0.11.0-h8d80559_0.conda
+  sha256: 291d0beef5f5aa57ceeac0db924cc031755b9b86b69b452afd0b53041df0357a
+  md5: 67ca3edb160b2fb00c0d462f3a76d32a
+  depends:
+  - __osx >=11.0
+  constrains:
+  - __osx >=11.0
+  license: Apache-2.0
+  license_family: APACHE
+  size: 5635775
+  timestamp: 1760129625316
+- conda: https://prefix.dev/conda-forge/win-64/sccache-0.11.0-h18a1a76_0.conda
+  sha256: 46fadad7f582aa9286470d0cd32a46978e96eb5fcd8e17766f8eb636555103cb
+  md5: 163f6b6ad1db65b668d9421735476cc9
+  depends:
+  - vc >=14.3,<15
+  - vc14_runtime >=14.44.35208
+  - ucrt >=10.0.20348.0
+  - vc >=14.3,<15
+  - vc14_runtime >=14.44.35208
+  - ucrt >=10.0.20348.0
+  license: Apache-2.0
+  license_family: APACHE
+  size: 6629027
+  timestamp: 1760129584001
 - conda: https://prefix.dev/conda-forge/linux-64/shellcheck-0.10.0-ha770c72_0.conda
   sha256: 6809031184c07280dcbaed58e15020317226a3ed234b99cb1bd98384ea5be813
   md5: 61b19e9e334ddcdf8bb2422ee576549e

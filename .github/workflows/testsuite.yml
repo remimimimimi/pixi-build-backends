@@ -13,6 +13,7 @@ concurrency:
 env:
   PYTHONIOENCODING: utf-8
   SCCACHE_GHA_ENABLED: "true"
+  ACTIONS_CACHE_SERVICE_V2: on
   RUSTC_WRAPPER: "sccache"
 
 jobs:
@@ -25,15 +26,16 @@ jobs:
       - uses: prefix-dev/setup-pixi@main
         with:
           cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
-      - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0 # v2
+      - name: Configure sccache
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
-          workspaces: ". -> target/pixi"
-          key: ${{ hashFiles('pixi.lock') }}
-          save-if: ${{ github.ref == 'refs/heads/main' }}
-      - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@4097539ece2ebbb6fd759bb45e5f0321071ac87d # v0.0.9
+          script: |
+            core.exportVariable('ACTIONS_RESULTS_URL', process.env.ACTIONS_RESULTS_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
       - name: Build backends channel
         run: pixi run -e build create-testsuite-channel
+      - name: Show sccache stats
+        run: pixi run sccache --stop-server
       - name: Upload executables as artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
