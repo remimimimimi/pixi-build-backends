@@ -135,6 +135,9 @@ depends-on = [
 ]
 args = [{ arg = "channel_dir", default = "artifacts-channel" }]
 
+[feature.build.activation.env]
+RUSTC_WRAPPER = "sccache"
+
 [feature.schema.tasks]
 generate-schema = "python schema/model.py > schema/schema.json"
 fmt-schema = "ruff format schema"
