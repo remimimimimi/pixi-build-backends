@@ -138,9 +138,6 @@ jobs:
 
       - name: Run integration tests
         run: pixi run --locked test-slow
-        env:
-          PIXI_BIN_DIR: ${{ github.workspace }}/artifacts
-          BUILD_BACKENDS_BIN_DIR: ${{ github.workspace }}/artifacts
 
   test-windows-x86_64:
     name: Test Windows x86_64
@@ -180,9 +177,6 @@ jobs:
       - name: Run integration tests
         run: pixi run --locked test-slow
         working-directory: ${{ env.PIXI_WORKSPACE }}
-        env:
-          PIXI_BIN_DIR: ${{ env.PIXI_WORKSPACE }}/artifacts
-          BUILD_BACKENDS_BIN_DIR: ${{ env.PIXI_WORKSPACE }}/artifacts
 
   test-macos-aarch64:
     name: Test macOS aarch64
@@ -215,6 +209,3 @@ jobs:
 
       - name: Run integration tests
         run: pixi run --locked test-slow
-        env:
-          PIXI_BIN_DIR: ${{ github.workspace }}/artifacts
-          BUILD_BACKENDS_BIN_DIR: ${{ github.workspace }}/artifacts
