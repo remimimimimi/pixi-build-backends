@@ -26,7 +26,9 @@ cache:
       - if: win
         then: set "CARGO_HOME=%RECIPE_DIR%\..\..\target/channel-build-cache-home"
         else: export CARGO_HOME=$(realpath ${RECIPE_DIR}/../../target/channel-build-cache-home)
-      - cd $RECIPE_DIR/../.. # TODO: Take care about windows
+      - if: win
+        then: cd "%RECIPE_DIR%\..\.."
+        else: cd $RECIPE_DIR/../..
       - cargo build --profile ci --locked --bins
       - python scripts/copy-backends.py
 
@@ -131,7 +133,9 @@ outputs:
         - pixi-build-api-version >=2,<3
     build:
       script:
-        - cd $RECIPE_DIR/../..
+        - if: win
+          then: cd "%RECIPE_DIR%\..\.."
+          else: cd $RECIPE_DIR/../..
         - pip install backends/pixi-build-ros -vv --no-build-isolation
       noarch: python
       python:
@@ -175,7 +179,9 @@ outputs:
         - if: win
           then: set "CARGO_HOME=%RECIPE_DIR%\..\..\target/channel-build-cache-home"
           else: export CARGO_HOME=$(realpath ${RECIPE_DIR}/../../target/channel-build-cache-home)
-        - cd $RECIPE_DIR/../../py-pixi-build-backend
+        - if: win
+          then: cd "%RECIPE_DIR%\..\..\py-pixi-build-backend"
+          else: cd $RECIPE_DIR/../../py-pixi-build-backend
         - pip install . -vv --no-build-isolation --config-settings=build-args=--profile=ci  --config-settings=build-args=--locked
       files:
         exclude:
