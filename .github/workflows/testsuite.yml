@@ -12,18 +12,15 @@ concurrency:
 
 env:
   PYTHONIOENCODING: utf-8
-  SCCACHE_GHA_ENABLED: "true"
-  ACTIONS_CACHE_SERVICE_V2: on
-
-permissions:
-  id-token: write
-  contents: read
 
 jobs:
   build-binary-linux-x86_64:
     name: Build Ubuntu
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      ACTIONS_CACHE_SERVICE_V2: on
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
       - uses: prefix-dev/setup-pixi@main
@@ -51,6 +48,9 @@ jobs:
     name: Build Windows
     runs-on: windows-latest
     timeout-minutes: 20
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      ACTIONS_CACHE_SERVICE_V2: on
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
       - name: Create Dev Drive
@@ -88,6 +88,9 @@ jobs:
     name: Build macOS
     runs-on: macos-latest
     timeout-minutes: 20
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      ACTIONS_CACHE_SERVICE_V2: on
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
       - uses: prefix-dev/setup-pixi@main
