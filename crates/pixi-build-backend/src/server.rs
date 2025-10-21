@@ -3,14 +3,16 @@ use std::{net::SocketAddr, path::Path, sync::Arc};
 use fs_err::tokio as tokio_fs;
 use jsonrpc_core::{Error, IoHandler, Params, serde_json, to_value};
 use miette::{Context, IntoDiagnostic, JSONReportHandler};
-use pixi_build_types::{
-    VersionedProjectModel,
-    procedures::{
-        self, conda_build_v1::CondaBuildV1Params, conda_outputs::CondaOutputsParams,
-        initialize::InitializeParams, negotiate_capabilities::NegotiateCapabilitiesParams,
-    },
+use pixi_build_types::procedures::{
+    self,
+    conda_build_v1::{CondaBuildV1Params, CondaBuildV1Result},
+    conda_outputs::{CondaOutputsParams, CondaOutputsResult},
+    initialize::InitializeParams,
+    negotiate_capabilities::NegotiateCapabilitiesParams,
 };
+use serde::Serialize;
 use tokio::sync::RwLock;
+use tracing::warn;
 
 use crate::protocol::{Protocol, ProtocolInstantiator};
 
@@ -89,10 +91,6 @@ impl<T: ProtocolInstantiator> Server<T> {
                         return Err(Error::invalid_request());
                     };
 
-                    let debug_dir = T::debug_dir(params.configuration.clone());
-                    let _ =
-                        log_initialize(debug_dir.as_deref(), params.project_model.clone()).await;
-
                     let (protocol_endpoint, result) = initializer
                         .initialize(params)
                         .await
@@ -115,16 +113,32 @@ impl<T: ProtocolInstantiator> Server<T> {
                     let state = state.read().await;
                     let endpoint = state.as_endpoint()?;
 
-                    let debug_dir = endpoint.debug_dir();
-                    log_conda_outputs(debug_dir, &params)
+                    let debug_dir = params.work_directory.join("debug");
+                    log_conda_outputs(&debug_dir, &params)
                         .await
                         .map_err(convert_error)?;
 
-                    endpoint
-                        .conda_outputs(params)
-                        .await
-                        .map(|value| to_value(value).expect("failed to convert to json"))
-                        .map_err(convert_error)
+                    match endpoint.conda_outputs(params).await {
+                        Ok(result) => {
+                            log_conda_outputs_response(&debug_dir, &result)
+                                .await
+                                .map_err(convert_error)?;
+
+                            Ok(to_value(result).expect("failed to convert to json"))
+                        }
+                        Err(err) => {
+                            let json_error = convert_error(err);
+                            if let Err(log_err) =
+                                log_conda_outputs_error(&debug_dir, &json_error).await
+                            {
+                                warn!(
+                                    error = %log_err,
+                                    "failed to write conda/outputs error log"
+                                );
+                            }
+                            Err(json_error)
+                        }
+                    }
                 }
             },
         );
@@ -140,16 +154,32 @@ impl<T: ProtocolInstantiator> Server<T> {
                     let state = state.read().await;
                     let endpoint = state.as_endpoint()?;
 
-                    let debug_dir = endpoint.debug_dir();
-                    log_conda_build_v1(debug_dir, &params)
+                    let debug_dir = params.work_directory.join("debug");
+                    log_conda_build_v1(&debug_dir, &params)
                         .await
                         .map_err(convert_error)?;
 
-                    endpoint
-                        .conda_build_v1(params)
-                        .await
-                        .map(|value| to_value(value).expect("failed to convert to json"))
-                        .map_err(convert_error)
+                    match endpoint.conda_build_v1(params).await {
+                        Ok(result) => {
+                            log_conda_build_v1_response(&debug_dir, &result)
+                                .await
+                                .map_err(convert_error)?;
+
+                            Ok(to_value(result).expect("failed to convert to json"))
+                        }
+                        Err(err) => {
+                            let json_error = convert_error(err);
+                            if let Err(log_err) =
+                                log_conda_build_v1_error(&debug_dir, &json_error).await
+                            {
+                                warn!(
+                                    error = %log_err,
+                                    "failed to write conda/build_v1 error log"
+                                );
+                            }
+                            Err(json_error)
+                        }
+                    }
                 }
             },
         );
@@ -172,74 +202,57 @@ fn convert_error(err: miette::Report) -> jsonrpc_core::Error {
     }
 }
 
-async fn log_initialize(
-    debug_dir: Option<&Path>,
-    project_model: Option<VersionedProjectModel>,
-) -> miette::Result<()> {
-    let Some(debug_dir) = debug_dir else {
-        return Ok(());
-    };
-
-    let project_model = project_model
-        .ok_or_else(|| miette::miette!("project model is required if debug_dir is given"))?
-        .into_v1()
-        .ok_or_else(|| miette::miette!("project model needs to be v1"))?;
-
-    let project_model_json = serde_json::to_string_pretty(&project_model)
-        .into_diagnostic()
-        .context("failed to serialize project model to JSON")?;
-
-    let project_model_path = debug_dir.join("project_model.json");
-    tokio_fs::write(&project_model_path, project_model_json)
-        .await
-        .into_diagnostic()
-        .context("failed to write project model JSON to file")?;
-    Ok(())
+async fn log_conda_outputs(debug_dir: &Path, params: &CondaOutputsParams) -> miette::Result<()> {
+    write_json_file(debug_dir, "conda_outputs_params.json", params).await
 }
 
-async fn log_conda_outputs(
-    debug_dir: Option<&Path>,
-    params: &CondaOutputsParams,
+async fn log_conda_outputs_response(
+    debug_dir: &Path,
+    result: &CondaOutputsResult,
 ) -> miette::Result<()> {
-    let Some(debug_dir) = debug_dir else {
-        return Ok(());
-    };
-
-    let json = serde_json::to_string_pretty(&params)
-        .into_diagnostic()
-        .context("failed to serialize parameters to JSON")?;
-
-    tokio_fs::create_dir_all(&debug_dir)
-        .await
-        .into_diagnostic()
-        .context("failed to create data directory")?;
-
-    let path = debug_dir.join("conda_outputs_params.json");
-    tokio_fs::write(&path, json)
-        .await
-        .into_diagnostic()
-        .context("failed to write JSON to file")?;
-    Ok(())
+    write_json_file(debug_dir, "conda_outputs_response.json", result).await
 }
 
-async fn log_conda_build_v1(
-    debug_dir: Option<&Path>,
-    params: &CondaBuildV1Params,
+async fn log_conda_outputs_error(
+    debug_dir: &Path,
+    error: &jsonrpc_core::Error,
 ) -> miette::Result<()> {
-    let Some(debug_dir) = debug_dir else {
-        return Ok(());
-    };
+    write_json_file(debug_dir, "conda_outputs_error.json", error).await
+}
 
-    let json = serde_json::to_string_pretty(&params)
-        .into_diagnostic()
-        .context("failed to serialize parameters to JSON")?;
+async fn log_conda_build_v1(debug_dir: &Path, params: &CondaBuildV1Params) -> miette::Result<()> {
+    write_json_file(debug_dir, "conda_build_v1_params.json", params).await
+}
 
-    tokio_fs::create_dir_all(&debug_dir)
+async fn log_conda_build_v1_response(
+    debug_dir: &Path,
+    result: &CondaBuildV1Result,
+) -> miette::Result<()> {
+    write_json_file(debug_dir, "conda_build_v1_response.json", result).await
+}
+
+async fn log_conda_build_v1_error(
+    debug_dir: &Path,
+    error: &jsonrpc_core::Error,
+) -> miette::Result<()> {
+    write_json_file(debug_dir, "conda_build_v1_error.json", error).await
+}
+
+async fn write_json_file<T: Serialize>(
+    debug_dir: &Path,
+    file_name: &str,
+    value: &T,
+) -> miette::Result<()> {
+    tokio_fs::create_dir_all(debug_dir)
         .await
         .into_diagnostic()
-        .context("failed to create data directory")?;
+        .context("failed to create debug directory")?;
 
-    let path = debug_dir.join("conda_build_v1_params.json");
+    let json = serde_json::to_string_pretty(value)
+        .into_diagnostic()
+        .context("failed to serialize value to JSON")?;
+
+    let path = debug_dir.join(file_name);
     tokio_fs::write(&path, json)
         .await
         .into_diagnostic()
