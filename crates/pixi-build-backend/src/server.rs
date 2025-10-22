@@ -3,17 +3,20 @@ use std::{net::SocketAddr, path::Path, sync::Arc};
 use fs_err::tokio as tokio_fs;
 use jsonrpc_core::{Error, IoHandler, Params, serde_json, to_value};
 use miette::{Context, IntoDiagnostic, JSONReportHandler};
-use pixi_build_types::procedures::{
-    self,
-    conda_build_v1::{CondaBuildV1Params, CondaBuildV1Result},
-    conda_outputs::{CondaOutputsParams, CondaOutputsResult},
-    initialize::InitializeParams,
-    negotiate_capabilities::NegotiateCapabilitiesParams,
+use pixi_build_types::{
+    VersionedProjectModel,
+    procedures::{
+        self,
+        conda_build_v1::{CondaBuildV1Params, CondaBuildV1Result},
+        conda_outputs::{CondaOutputsParams, CondaOutputsResult},
+        initialize::InitializeParams,
+        negotiate_capabilities::NegotiateCapabilitiesParams,
+    },
 };
 use serde::Serialize;
-use tokio::sync::RwLock;
-use tracing::warn;
+use tokio::sync::{Mutex, RwLock};
 
+use crate::consts::DEBUG_OUTPUT_DIR;
 use crate::protocol::{Protocol, ProtocolInstantiator};
 
 /// A JSONRPC server that can be used to communicate with a client.
@@ -77,15 +80,25 @@ impl<T: ProtocolInstantiator> Server<T> {
             },
         );
 
+        let project_model = Arc::new(Mutex::new(None));
+
         let state = Arc::new(RwLock::new(ServerState::Uninitialized(self.instatiator)));
         let initialize_state = state.clone();
+        let initialize_project_model = project_model.clone();
         io.add_method(
             procedures::initialize::METHOD_NAME,
             move |params: Params| {
+                let pm = initialize_project_model.clone();
                 let state = initialize_state.clone();
 
                 async move {
                     let params: InitializeParams = params.parse()?;
+
+                    if let Some(project_model) = &params.project_model {
+                        let mut lock = pm.lock().await;
+                        *lock = Some(project_model.clone());
+                    }
+
                     let mut state = state.write().await;
                     let ServerState::Uninitialized(initializer) = &mut *state else {
                         return Err(Error::invalid_request());
@@ -103,9 +116,11 @@ impl<T: ProtocolInstantiator> Server<T> {
         );
 
         let conda_outputs = state.clone();
+        let conda_outputs_project_model = project_model.clone();
         io.add_method(
             procedures::conda_outputs::METHOD_NAME,
             move |params: Params| {
+                let pm = conda_outputs_project_model.clone();
                 let state = conda_outputs.clone();
 
                 async move {
@@ -113,7 +128,14 @@ impl<T: ProtocolInstantiator> Server<T> {
                     let state = state.read().await;
                     let endpoint = state.as_endpoint()?;
 
-                    let debug_dir = params.work_directory.join("debug");
+                    let debug_dir = params.work_directory.join(DEBUG_OUTPUT_DIR);
+
+                    if let Some(project_model) = pm.lock().await.take() {
+                        log_project_model(&debug_dir, project_model)
+                            .await
+                            .map_err(convert_error)?;
+                    }
+
                     log_conda_outputs(&debug_dir, &params)
                         .await
                         .map_err(convert_error)?;
@@ -128,14 +150,9 @@ impl<T: ProtocolInstantiator> Server<T> {
                         }
                         Err(err) => {
                             let json_error = convert_error(err);
-                            if let Err(log_err) =
-                                log_conda_outputs_error(&debug_dir, &json_error).await
-                            {
-                                warn!(
-                                    error = %log_err,
-                                    "failed to write conda/outputs error log"
-                                );
-                            }
+                            log_conda_outputs_error(&debug_dir, &json_error)
+                                .await
+                                .map_err(convert_error)?;
                             Err(json_error)
                         }
                     }
@@ -144,9 +161,11 @@ impl<T: ProtocolInstantiator> Server<T> {
         );
 
         let conda_build_v1 = state.clone();
+        let conda_build_project_model = project_model.clone();
         io.add_method(
             procedures::conda_build_v1::METHOD_NAME,
             move |params: Params| {
+                let pm = conda_build_project_model.clone();
                 let state = conda_build_v1.clone();
 
                 async move {
@@ -154,7 +173,14 @@ impl<T: ProtocolInstantiator> Server<T> {
                     let state = state.read().await;
                     let endpoint = state.as_endpoint()?;
 
-                    let debug_dir = params.work_directory.join("debug");
+                    let debug_dir = params.work_directory.join(DEBUG_OUTPUT_DIR);
+
+                    if let Some(project_model) = pm.lock().await.take() {
+                        log_project_model(&debug_dir, project_model)
+                            .await
+                            .map_err(convert_error)?;
+                    }
+
                     log_conda_build_v1(&debug_dir, &params)
                         .await
                         .map_err(convert_error)?;
@@ -169,14 +195,9 @@ impl<T: ProtocolInstantiator> Server<T> {
                         }
                         Err(err) => {
                             let json_error = convert_error(err);
-                            if let Err(log_err) =
-                                log_conda_build_v1_error(&debug_dir, &json_error).await
-                            {
-                                warn!(
-                                    error = %log_err,
-                                    "failed to write conda/build_v1 error log"
-                                );
-                            }
+                            log_conda_build_v1_error(&debug_dir, &json_error)
+                                .await
+                                .map_err(convert_error)?;
                             Err(json_error)
                         }
                     }
@@ -200,6 +221,17 @@ fn convert_error(err: miette::Report) -> jsonrpc_core::Error {
         message: err.to_string(),
         data: Some(data),
     }
+}
+
+async fn log_project_model(
+    debug_dir: &Path,
+    project_model: VersionedProjectModel,
+) -> miette::Result<()> {
+    let project_model = project_model
+        .into_v1()
+        .ok_or_else(|| miette::miette!("project model needs to be v1"))?;
+
+    write_json_file(debug_dir, "project_model.json", &project_model).await
 }
 
 async fn log_conda_outputs(debug_dir: &Path, params: &CondaOutputsParams) -> miette::Result<()> {

@@ -198,7 +198,8 @@ class ROSBackendConfig(pydantic.BaseModel, extra="forbid", arbitrary_types_allow
         """Warn when the deprecated debug_dir setting is used."""
         if self.debug_dir:
             warnings.warn(
-                "`debug-dir` backend configuration is deprecated and ignored; debug data is now written to the build work directory.",
+                "`debug-dir` backend configuration is deprecated and ignored, it will be removed later. "
+                "Debug data is now written to the build work directory.",
                 UserWarning,
                 stacklevel=2,
             )

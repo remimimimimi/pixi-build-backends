@@ -38,6 +38,7 @@ use tracing::warn;
 
 use crate::{
     TargetSelector,
+    consts::DEBUG_OUTPUT_DIR,
     dependencies::{
         convert_binary_dependencies, convert_dependencies, convert_input_variant_configuration,
     },
@@ -376,7 +377,7 @@ where
             );
 
             // Save intermediate recipe in the debug dir
-            let debug_dir = directories.work_dir.join("debug");
+            let debug_dir = directories.work_dir.join(DEBUG_OUTPUT_DIR);
             tokio_fs::create_dir_all(&debug_dir)
                 .await
                 .into_diagnostic()?;
@@ -590,7 +591,7 @@ where
         );
 
         // Save intermediate recipe in the debug dir
-        let debug_dir = directories.work_dir.join("debug");
+        let debug_dir = directories.work_dir.join(DEBUG_OUTPUT_DIR);
         tokio_fs::create_dir_all(&debug_dir)
             .await
             .into_diagnostic()?;
