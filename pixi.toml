@@ -133,8 +133,7 @@ depends-on = [
   "rm-cmake-backend-package",
   "rm-ros-backend-package",
 ]
-cmd = "rattler-build build --experimental --no-build-id --skip-existing --recipe recipe/testsuite-backends --variant-config recipe/variants.yaml --output-dir {{ output_dir }}"
-args = [{ arg = "output_dir", default = "artifacts-channel" }]
+cmd = "rattler-build build --experimental --no-build-id --skip-existing --recipe recipe/testsuite-backends --variant-config recipe/variants.yaml --output-dir artifacts-channel"
 inputs = [
   "recipe/testsuite-backends/recipe.yaml",
   "recipe/variants.yaml",
@@ -144,54 +143,24 @@ inputs = [
   "backends/pixi-build-ros/pyproject.toml",
   "backends/pixi-build-ros/templates/*",
 ]
-outputs = ["{{ output_dir }}"]
+outputs = ["artifacts-channel"]
 
 [feature.build.tasks.clean-backends-build-outputs]
-depends-on = [
-  { task = "build-testsuite-backends", args = [
-    "{{ output_dir }}",
-  ] },
-]
-args = [{ arg = "output_dir", default = "artifacts-channel" }]
-cmd = "python scripts/clean-outputs.py {{ output_dir }}"
+depends-on = ["build-testsuite-backends"]
+cmd = "python scripts/clean-outputs.py artifacts-channel"
 
 [feature.build.tasks.index-testsuite-channel]
-depends-on = [
-  { task = "build-testsuite-backends", args = [
-    "{{ channel_dir }}",
-  ] },
-]
-args = [{ arg = "channel_dir", default = "artifacts-channel" }]
-cmd = "rattler-index fs --force --write-shards false --write-zst false {{ channel_dir }}"
+depends-on = ["build-testsuite-backends"]
+cmd = "rattler-index fs --force --write-shards false --write-zst false artifacts-channel"
 
 [feature.build.tasks.rm-build]
-cmd = "rm -rf {{ channel_dir }}/bld"
-args = [{ arg = "channel_dir", default = "artifacts-channel" }]
+cmd = "rm -rf artifacts-channel/bld"
 
 [feature.build.tasks.create-channel]
-depends-on = [
-  { task = "rm-build", args = [
-    "{{ channel_dir }}",
-  ] },
-  { task = "build-testsuite-backends", args = [
-    "{{ channel_dir }}",
-  ] },
-  { task = "index-testsuite-channel", args = [
-    "{{ channel_dir }}",
-  ] },
-]
-args = [{ arg = "channel_dir", default = "artifacts-channel" }]
+depends-on = ["rm-build", "build-testsuite-backends", "index-testsuite-channel"]
 
 [feature.build.tasks.create-testsuite-channel]
-depends-on = [
-  { task = "create-channel", args = [
-    "{{ channel_dir }}",
-  ] },
-  { task = "clean-backends-build-outputs", args = [
-    "{{ channel_dir }}",
-  ] },
-]
-args = [{ arg = "channel_dir", default = "artifacts-channel" }]
+depends-on = ["create-channel", "clean-backends-build-outputs"]
 
 [feature.build.activation.env]
 RUSTC_WRAPPER = "sccache"
