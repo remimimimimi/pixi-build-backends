@@ -370,7 +370,7 @@ where
             // Save intermediate recipe and the used variant
             // in the debug dir by hash of the variant
             // and entire variants.yaml at the root of debug_dir
-            let debug_dir = &directories.work_dir.join("debug");
+            let debug_dir = &directories.build_dir.join("debug");
 
             let recipe_path = debug_dir.join("recipe.yaml");
             let variants_path = debug_dir.join("variants.yaml");
@@ -624,7 +624,7 @@ where
         // Save intermediate recipe and the used variant
         // in the debug dir by hash of the variant
         // and entire variants.yaml at the root of debug_dir
-        let debug_dir = &directories.work_dir.join(DEBUG_OUTPUT_DIR);
+        let debug_dir = &directories.build_dir.join(DEBUG_OUTPUT_DIR);
 
         let recipe_path = debug_dir.join("recipe.yaml");
         let variants_path = debug_dir.join("variants.yaml");
@@ -652,7 +652,7 @@ where
             .await
             .into_diagnostic()?;
 
-        // write the entire variants.yaml at the root of work_dir
+        // write the entire variants.yaml at the root of debug_dir
         let variants = serde_yaml::to_string(&variant_config)
             .into_diagnostic()
             .context("failed to serialize variant config to YAML")?;

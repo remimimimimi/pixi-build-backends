@@ -128,7 +128,7 @@ impl<T: ProtocolInstantiator> Server<T> {
                     let state = state.read().await;
                     let endpoint = state.as_endpoint()?;
 
-                    let debug_dir = params.work_directory.join("work").join(DEBUG_OUTPUT_DIR);
+                    let debug_dir = params.work_directory.join(DEBUG_OUTPUT_DIR);
 
                     if let Some(project_model) = pm.lock().await.take() {
                         log_project_model(&debug_dir, project_model)
@@ -173,7 +173,7 @@ impl<T: ProtocolInstantiator> Server<T> {
                     let state = state.read().await;
                     let endpoint = state.as_endpoint()?;
 
-                    let debug_dir = params.work_directory.join("work").join(DEBUG_OUTPUT_DIR);
+                    let debug_dir = params.work_directory.join(DEBUG_OUTPUT_DIR);
 
                     if let Some(project_model) = pm.lock().await.take() {
                         log_project_model(&debug_dir, project_model)
