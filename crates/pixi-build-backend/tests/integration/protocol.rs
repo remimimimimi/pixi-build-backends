@@ -140,11 +140,5 @@ async fn test_conda_build_v1() {
         ".subdir" => "[redacted]",
     });
 
-    assert!(
-        build_dir
-            .join("work")
-            .join("debug")
-            .join("recipe.yaml")
-            .exists()
-    );
+    assert!(build_dir.join("debug").join("recipe.yaml").exists());
 }
