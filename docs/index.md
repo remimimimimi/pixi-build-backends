@@ -117,7 +117,7 @@ This allows you to:
 You can find JSON version of your project model and requests/responses in the same directory alongside `recipe.yaml`. 
 We store:
 
-- Project model: `project_mode.json`
+- Project model: `project_model.json`
 - Requests: `*_params.json`
 - Responses: `*_response.json`
 
