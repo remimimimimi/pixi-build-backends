@@ -114,7 +114,8 @@ This allows you to:
 
 ### Debugging JSON-RPC
 
-You can find JSON version of your project model and requests/responses in the same directory alongside `recipe.yaml`. We store
+You can find JSON version of your project model and requests/responses in the same directory alongside `recipe.yaml`. 
+We store:
 
 - Project model: `project_mode.json`
 - Requests: `*_params.json`
